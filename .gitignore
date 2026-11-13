@@ -1,0 +1,47 @@
+# Variables de entorno y configuración local
+.env
+.env.*
+!.env.example
+*.local
+
+# Claves privadas y certificados sensibles
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+
+# Configuración local de Kubernetes
+.kube/
+kubeconfig
+*.kubeconfig
+
+# Configuración privada de Ansible
+ansible/inventory/local/
+ansible/inventories/local/
+*.retry
+
+# Directorios destinados a secretos locales
+secrets/
+**/secrets/
+
+# Archivos temporales
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Herramientas y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Python / Ansible
+__pycache__/
+*.pyc
+.venv/
