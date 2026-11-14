@@ -1,0 +1,41 @@
+
+---
+- name: LAB-03 - Configurar red del servidor
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Verificar Ubuntu 24.04 LTS
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_release'] == 'noble'
+        fail_msg: "Sistema operativo no compatible"
+
+    - name: Verificar existencia de enp0s8
+      ansible.builtin.assert:
+        that:
+          - "'enp0s8' in ansible_facts['interfaces']"
+        fail_msg: "No se detecto el adaptador puente"
+
+    - name: Instalar configuracion Netplan
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../files/60-saas-bridge.yaml"
+        dest: /etc/netplan/60-saas-bridge.yaml
+        owner: root
+        group: root
+        mode: '0600'
+        backup: true
+
+    - name: Validar configuracion Netplan
+      ansible.builtin.command:
+        cmd: netplan generate
+      changed_when: false
+
+    - name: Informar resultado
+      ansible.builtin.debug:
+        msg: >-
+          Configuracion validada.
+          No se ejecutaron netplan apply,
+          netplan try ni reinicios de red.
