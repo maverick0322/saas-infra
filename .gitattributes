@@ -1,0 +1,24 @@
+# Detección y normalización de archivos de texto
+* text=auto
+
+# Documentación
+*.md text eol=lf
+
+# Shell Linux
+*.sh text eol=lf
+
+# Ansible y Kubernetes
+*.yml text eol=lf
+*.yaml text eol=lf
+*.j2 text eol=lf
+
+# Configuración Linux
+*.conf text eol=lf
+*.ini text eol=lf
+
+# Docker
+Dockerfile text eol=lf
+
+# Archivos del repositorio
+.gitattributes text eol=lf
+.gitignore text eol=lf
