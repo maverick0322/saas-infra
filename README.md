@@ -88,7 +88,7 @@ alta disponibilidad del plano de control.
 | INFRA-00 | Repositorio y documentación | En progreso |
 | LAB-00 | Viabilidad y topología | En progreso |
 | LAB-01 | Primer nodo Linux | Validación final |
-| LAB-02 | Automatización con Ansible | Pendiente |
+| LAB-02 | Automatización con Ansible | En progreso |
 | LAB-03 | Instalación y validación K3s | Pendiente |
 | LAB-04 | Aplicación mínima .NET 10 | Pendiente |
 | LAB-05 | CI con GitHub Actions y GHCR | Pendiente |
@@ -101,6 +101,7 @@ según los resultados de cada incremento.
 
 - [LAB-00: Diagnóstico de viabilidad](docs/LAB-00.md)
 - [LAB-01: Primer nodo Linux](docs/LAB-01.md)
+- [LAB-02: Ansible](docs/LAB-02.md)
 
 ## Estado
 

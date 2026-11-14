@@ -1,0 +1,29 @@
+
+---
+- name: LAB-02 - Verificar nodo Linux
+  hosts: k3s_servers
+  gather_facts: true
+
+  tasks:
+    - name: Verificar sistema operativo
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_version'] is version('24.04', '>=')
+        success_msg: "Sistema operativo compatible"
+        fail_msg: "Revisar la version de Ubuntu"
+
+    - name: Comprobar memoria minima
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['memtotal_mb'] >= 2048
+        success_msg: "Memoria minima disponible en el nodo"
+        fail_msg: "El nodo tiene menos de 2 GiB de RAM total"
+
+    - name: Mostrar informacion del nodo
+      ansible.builtin.debug:
+        msg:
+          - "Servidor: {{ ansible_facts['hostname'] }}"
+          - "SO: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+          - "RAM total: {{ ansible_facts['memtotal_mb'] }} MiB"
+          - "Arquitectura: {{ ansible_facts['architecture'] }}"
