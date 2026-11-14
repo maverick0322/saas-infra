@@ -1,0 +1,36 @@
+
+---
+- name: LAB-02 - Mantenimiento controlado de Ubuntu
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Verificar Ubuntu 24.04 LTS
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_release'] == 'noble'
+        fail_msg: "Sistema operativo no compatible"
+
+    - name: Actualizar paquetes instalados
+      ansible.builtin.apt:
+        upgrade: safe
+        update_cache: false
+        dpkg_options: force-confdef,force-confold
+        lock_timeout: 120
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      register: apt_result
+
+    - name: Comprobar necesidad de reinicio
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
+    - name: Mostrar resultado del mantenimiento
+      ansible.builtin.debug:
+        msg:
+          - "Paquetes modificados: {{ apt_result.changed }}"
+          - "Reinicio pendiente: {{ reboot_required.stat.exists }}"
+          - "No se ejecutara un reinicio automatico"

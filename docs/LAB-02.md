@@ -183,3 +183,56 @@ Automatizar comprobaciones y mantenimiento básico
 del sistema Ubuntu antes de instalar K3s.
 
 LAB-02 permanece en progreso para esta etapa operativa.
+
+
+## Mantenimiento automatizado de Ubuntu
+
+Fecha: 2026-11-14
+
+Playbooks:
+- ansible/playbooks/check-updates.yml
+- ansible/playbooks/maintain-node.yml
+
+### Diagnóstico inicial
+
+- Catálogo APT actualizado correctamente.
+- 27 paquetes identificados para actualización.
+- 3 paquetes diferidos por phased updates.
+- Sin reinicio pendiente.
+- Simulación sin modificaciones: PASS.
+
+### Mantenimiento real
+
+Primera ejecución:
+- ok=5
+- changed=1
+- unreachable=0
+- failed=0
+
+Segunda ejecución:
+- ok=5
+- changed=0
+- unreachable=0
+- failed=0
+
+### Validación posterior
+
+- Conectividad Ansible: PASS (pong).
+- Reinicio pendiente: False.
+- Paquetes restantes: distro-info,
+  python3-distro-info y snapd.
+- Actualizaciones diferidas no forzadas.
+
+### Conclusión
+
+Mantenimiento e idempotencia validados
+para las condiciones ensayadas.
+
+Estado: GO técnico con observaciones.
+
+Pendiente registrar la existencia del snapshot
+previo al mantenimiento y su política de conservación.
+No se ha realizado una restauración de prueba.
+
+La infraestructura todavía no cuenta con
+reconstrucción completamente automatizada.

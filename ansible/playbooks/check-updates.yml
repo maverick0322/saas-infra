@@ -1,0 +1,34 @@
+
+---
+- name: LAB-02 - Diagnostico de mantenimiento
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Confirmar Ubuntu 24.04
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_release'] == 'noble'
+        fail_msg: "Sistema operativo no esperado"
+
+    - name: Simular actualizaciones de paquetes
+      ansible.builtin.command:
+        argv:
+          - apt-get
+          - -s
+          - upgrade
+      register: apt_simulation
+      changed_when: false
+
+    - name: Comprobar si hay reinicio pendiente
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_status
+
+    - name: Mostrar resumen del diagnostico
+      ansible.builtin.debug:
+        msg:
+          - "Reinicio pendiente: {{ reboot_status.stat.exists }}"
+          - "Simulacion APT: {{ apt_simulation.stdout_lines }}"
