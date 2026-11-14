@@ -113,6 +113,47 @@ failed=0
 
 Esta ejecución no modificó el servidor.
 
+## Primera configuración idempotente
+
+Archivo: ansible/playbooks/configure-node.yml
+
+Operaciones:
+- Crear /etc/saas-infra con permisos 0755.
+- Crear managed-by-ansible.txt con permisos 0644.
+- Ejecutar las tareas con sudo mediante become.
+
+Validación de sintaxis: PASS.
+
+Primera ejecución:
+- ok=2
+- changed=2
+- unreachable=0
+- failed=0
+
+Segunda ejecución:
+- ok=2
+- changed=0
+- unreachable=0
+- failed=0
+
+Se confirmó directamente la existencia y el
+contenido del archivo en Ubuntu Server.
+
+Conclusión:
+Idempotencia validada para las dos tareas declaradas.
+
+## Elevación de privilegios
+
+Se ejecutó ansible.builtin.setup con become.
+
+Resultado:
+- ansible_user_id: root
+- changed: false
+
+La elevación mediante sudo fue satisfactoria.
+
+No se habilitó SSH de root ni sudo sin contraseña.
+
 ## Criterios de aceptación
 
 - [x] Controlador WSL2 preparado.
@@ -123,9 +164,9 @@ Esta ejecución no modificó el servidor.
 - [x] ansible.builtin.ping exitoso.
 - [x] Primer playbook ejecutado.
 - [x] Ejecución sin cambios ni fallos.
-- [ ] Elevación de privilegios validada.
-- [ ] Primera configuración automatizada.
-- [ ] Idempotencia comprobada.
+- [x] Elevación de privilegios validada.
+- [x] Primera configuración automatizada.
+- [x] Idempotencia comprobada.
 - [ ] Cierre de LAB-02.
 
 ## Pendientes y limitaciones
@@ -135,13 +176,10 @@ Esta ejecución no modificó el servidor.
 - La configuración SSH local no está versionada.
 - La clave privada no debe subirse a Git.
 - La regla NAT de VirtualBox es manual.
-- Falta verificar operaciones administrativas.
-- Falta probar idempotencia con cambios reales.
 
-## Siguiente paso
+## Próxima etapa
 
-Verificar elevación de privilegios con sudo
-desde Ansible y preparar una automatización
-mínima para la configuración de Ubuntu.
+Automatizar comprobaciones y mantenimiento básico
+del sistema Ubuntu antes de instalar K3s.
 
-No instalar K3s todavía.
+LAB-02 permanece en progreso para esta etapa operativa.

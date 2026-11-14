@@ -1,0 +1,26 @@
+
+---
+- name: LAB-02 - Configuracion inicial del nodo
+  hosts: k3s_servers
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Crear directorio del laboratorio
+      ansible.builtin.file:
+        path: /etc/saas-infra
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Crear identificador del nodo administrado
+      ansible.builtin.copy:
+        dest: /etc/saas-infra/managed-by-ansible.txt
+        content: |
+          Laboratorio SaaS - Gestion de Clinicas
+          Gestionado mediante Ansible
+          Entorno: desarrollo academico
+        owner: root
+        group: root
+        mode: "0644"
