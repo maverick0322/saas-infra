@@ -1,0 +1,79 @@
+
+---
+- name: LAB-04 - Instalar K3s Server
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - ../vars/k3s.yml
+
+  tasks:
+    - name: Validar sistema operativo
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_release'] == 'noble'
+          - k3s_network_iface is defined
+
+    - name: Validar direccion de interfaz LAN
+      ansible.builtin.assert:
+        that:
+          - k3s_network_iface in ansible_facts['interfaces']
+          - ansible_facts[k3s_network_iface]['ipv4']['address'] is defined
+
+    - name: Obtener direccion LAN
+      ansible.builtin.set_fact:
+        k3s_node_ip: >-
+          {{ ansible_facts[k3s_network_iface]['ipv4']['address'] }}
+
+    - name: Consultar instalacion existente
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_installed
+
+    - name: Preparar directorio de configuracion
+      ansible.builtin.file:
+        path: /etc/rancher/k3s
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Configurar K3s Server
+      ansible.builtin.template:
+        src: ../templates/k3s-server-config.yaml.j2
+        dest: /etc/rancher/k3s/config.yaml
+        owner: root
+        group: root
+        mode: '0600'
+        backup: true
+      notify: Reiniciar K3s existente
+
+    - name: Descargar instalador oficial
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/saas-install-k3s.sh
+        mode: '0700'
+      when: not k3s_installed.stat.exists
+
+    - name: Instalar version fijada de K3s
+      ansible.builtin.command:
+        cmd: /bin/sh /tmp/saas-install-k3s.sh
+        creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+        INSTALL_K3S_EXEC: server
+
+    - name: Asegurar servicio K3s activo
+      ansible.builtin.systemd_service:
+        name: k3s
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Reiniciar K3s existente
+      ansible.builtin.systemd_service:
+        name: k3s
+        state: restarted
+      when: k3s_installed.stat.exists

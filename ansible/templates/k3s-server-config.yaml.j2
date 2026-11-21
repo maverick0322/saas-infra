@@ -1,0 +1,14 @@
+---
+node-name: "{{ k3s_node_name | default(inventory_hostname) }}"
+flannel-iface: "{{ k3s_network_iface }}"
+
+{% if k3s_pin_node_ip | default(true) | bool %}
+node-ip: "{{ k3s_node_ip }}"
+advertise-address: "{{ k3s_node_ip }}"
+tls-san:
+  - "{{ k3s_node_ip }}"
+{% endif %}
+
+disable:
+  - traefik
+  - servicelb

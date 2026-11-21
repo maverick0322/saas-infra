@@ -1,0 +1,64 @@
+
+---
+- name: LAB-04 - Preflight K3s Server
+  hosts: k3s_servers
+  gather_facts: true
+  become: false
+
+  tasks:
+    - name: Validar sistema operativo y recursos
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_release'] == 'noble'
+          - ansible_facts['architecture'] == 'x86_64'
+          - (ansible_facts['processor_vcpus'] | int) >= 2
+          - (ansible_facts['memtotal_mb'] | int) >= 2048
+        fail_msg: "El nodo no cumple los requisitos basicos"
+
+    - name: Verificar que se indique una interfaz LAN
+      ansible.builtin.assert:
+        that:
+          - k3s_network_iface is defined
+          - k3s_network_iface | length > 0
+        fail_msg: "Falta definir k3s_network_iface"
+
+    - name: Consultar IPv4 de la interfaz LAN
+      ansible.builtin.command:
+        argv:
+          - ip
+          - -4
+          - -o
+          - addr
+          - show
+          - dev
+          - "{{ k3s_network_iface }}"
+      register: lan_result
+      changed_when: false
+
+    - name: Verificar direccion IPv4 de la LAN
+      ansible.builtin.assert:
+        that:
+          - "'inet ' in lan_result.stdout"
+        fail_msg: "La interfaz LAN no tiene IPv4"
+
+    - name: Consultar espacio del disco raiz
+      ansible.builtin.command:
+        argv: [df, -h, /]
+      register: disk_result
+      changed_when: false
+
+    - name: Comprobar si K3s ya esta instalado
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_binary
+
+    - name: Informar estado del nodo
+      ansible.builtin.debug:
+        msg:
+          - "CPU: {{ ansible_facts['processor_vcpus'] }}"
+          - "RAM MiB: {{ ansible_facts['memtotal_mb'] }}"
+          - "Interfaz: {{ k3s_network_iface }}"
+          - "IPv4: {{ lan_result.stdout }}"
+          - "Disco: {{ disk_result.stdout_lines }}"
+          - "K3s instalado: {{ k3s_binary.stat.exists }}"
