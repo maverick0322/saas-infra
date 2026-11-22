@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: saas-platform
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/maverick0322/saas-infra.git
+    targetRevision: main
+    path: k8s/apps/platform
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: saas-vital
