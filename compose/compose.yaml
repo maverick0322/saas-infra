@@ -1,0 +1,7 @@
+name: saas-vital-local
+
+services:
+  platform:
+    image: ghcr.io/maverick0322/saas-platform@sha256:104c651cd22324935c161314a28aeb7fd8728090710ad355b26cd37842b00746
+    ports:
+      - "127.0.0.1:18080:8080"
