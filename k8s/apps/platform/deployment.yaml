@@ -6,6 +6,8 @@ metadata:
   labels:
     app.kubernetes.io/name: saas-platform
     app.kubernetes.io/part-of: saas-vital
+  annotations:
+    lab.saas-vital/gitops-validation: "enabled"
 
 spec:
   replicas: 1
