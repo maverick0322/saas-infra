@@ -117,9 +117,9 @@ Consultar [Ambientes de desarrollo y demostración](docs/AMBIENTES.md).
 | LAB-02 | Automatización con Ansible | Validado |
 | LAB-03 | Configuración y experimentación de red | Validado en el entorno original |
 | LAB-04 | Instalación y validación local de K3s sobre WSL2 | PASS LOCAL |
-| LAB-05 | CI con GitHub Actions | Propuesto |
-| LAB-06 | Construcción y publicación de imágenes en GHCR | Propuesto |
-| LAB-07 | Manifiestos Kubernetes y despliegue de aplicaciones | Propuesto |
+| LAB-05 | CI con GitHub Actions | PASS — saas-platform |
+| LAB-06 | Construcción y publicación de imágenes en GHCR | GHCR_PASS — saas-platform |
+| LAB-07 | Manifiestos Kubernetes y despliegue de aplicaciones | PASS LOCAL |
 | LAB-08 | Instalación y configuración de Argo CD | Propuesto |
 | LAB-09 | Automatización del CD mediante GitOps | Propuesto |
 | LAB-10 | Incorporación del segundo nodo físico | Pendiente |
@@ -133,14 +133,15 @@ La secuencia de los incrementos siguientes es provisional y podrá ajustarse seg
 - [LAB-02: Ansible](docs/LAB-02.md)
 - [LAB-03: Configuración de red](docs/LAB-03.md)
 - [LAB-04: Instalación y validación de K3s sobre WSL2](docs/LAB-04.md)
+- [LAB-07: Primer despliegue de Platform en Kubernetes](docs/LAB-07.md)
 - [Ambientes de desarrollo y demostración](docs/AMBIENTES.md)
 
 ## Estado
 
-Infraestructura Kubernetes de un nodo instalada y validada localmente sobre WSL2.
+El clúster K3s de un nodo se encuentra validado localmente sobre WSL2.
 
-La máquina VirtualBox original y sus snapshots se conservan como respaldo histórico del laboratorio.
+El CI y la publicación GHCR de saas-platform están validados.
+Platform está desplegado en K3s utilizando su imagen oficial por digest.
 
-El siguiente objetivo es configurar la integración continua y publicación de imágenes de los microservicios, seguida de su despliegue mediante Kubernetes y Argo CD.
-
-La validación distribuida de dos nodos físicos permanece pendiente.
+El siguiente incremento es LAB-08: Argo CD y sincronización GitOps.
+La incorporación de Surface como segundo nodo continúa pendiente.
