@@ -121,7 +121,7 @@ Consultar [Ambientes de desarrollo y demostración](docs/AMBIENTES.md).
 | LAB-06 | Construcción y publicación de imágenes en GHCR | GHCR_PASS — saas-platform |
 | LAB-07 | Manifiestos Kubernetes y despliegue de aplicaciones | PASS LOCAL |
 | LAB-08 | Instalación y configuración de Argo CD | PASS LOCAL |
-| LAB-09 | Automatización del CD mediante GitOps | Propuesto |
+| LAB-09 | Automatización del CD mediante GitOps | PASS LOCAL |
 | LAB-10 | Incorporación del segundo nodo físico | Pendiente |
 
 La secuencia de los incrementos siguientes es provisional y podrá ajustarse según las necesidades del proyecto.
@@ -135,6 +135,7 @@ La secuencia de los incrementos siguientes es provisional y podrá ajustarse seg
 - [LAB-04: Instalación y validación de K3s sobre WSL2](docs/LAB-04.md)
 - [LAB-07: Primer despliegue de Platform en Kubernetes](docs/LAB-07.md)
 - [LAB-08: Instalación de ARGO CD en saas-infra](docs/LAB-08.md)
+- [LAB-09: GitOps de Platform con Argo CD](docs/LAB-09.md)
 - [Ambientes de desarrollo y demostración](docs/AMBIENTES.md)
 
 ## Estado
@@ -144,5 +145,5 @@ El clúster K3s de un nodo se encuentra validado localmente sobre WSL2.
 El CI y la publicación GHCR de saas-platform están validados.
 Platform está desplegado en K3s utilizando su imagen oficial por digest.
 
-El siguiente incremento es LAB-09: Sincronización GitOps.
-La incorporación de Surface como segundo nodo continúa pendiente.
+LAB-09 se encuentra validado localmente. La incorporación de Surface
+como segundo nodo físico continúa pendiente (LAB-10).
