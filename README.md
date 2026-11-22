@@ -53,10 +53,10 @@ No es un entorno de producción ni está autorizado para almacenar información 
 | Ansible | Configuración automatizada | Implementado |
 | K3s | Orquestación Kubernetes | Un nodo validado |
 | containerd | Runtime de contenedores | Implementado |
-| Docker Compose | Integración local | Pendiente |
-| GitHub Actions | Integración continua | Pendiente |
-| GHCR | Registro de imágenes | Pendiente |
-| Argo CD | Despliegues GitOps | Pendiente |
+| Docker Compose | Integración local | Platform validado — DEV-01 |
+| GitHub Actions | Integración continua | Validado — saas-platform |
+| GHCR | Registro de imágenes | Validado — saas-platform |
+| Argo CD | Despliegues GitOps | PASS LOCAL — LAB-09 |
 | .NET 10 | Backend de microservicios | Tecnología confirmada |
 
 ## Topología
@@ -122,6 +122,7 @@ Consultar [Ambientes de desarrollo y demostración](docs/AMBIENTES.md).
 | LAB-07 | Manifiestos Kubernetes y despliegue de aplicaciones | PASS LOCAL |
 | LAB-08 | Instalación y configuración de Argo CD | PASS LOCAL |
 | LAB-09 | Automatización del CD mediante GitOps | PASS LOCAL |
+| DEV-01 | Entorno local con Docker Compose | PASS LOCAL — EVICTUS |
 | LAB-10 | Incorporación del segundo nodo físico | Pendiente |
 
 La secuencia de los incrementos siguientes es provisional y podrá ajustarse según las necesidades del proyecto.
@@ -136,6 +137,7 @@ La secuencia de los incrementos siguientes es provisional y podrá ajustarse seg
 - [LAB-07: Primer despliegue de Platform en Kubernetes](docs/LAB-07.md)
 - [LAB-08: Instalación de ARGO CD en saas-infra](docs/LAB-08.md)
 - [LAB-09: GitOps de Platform con Argo CD](docs/LAB-09.md)
+- [DEV-01: Entorno de desarrollo local con Docker Compose](docs/DEV-01.md)
 - [Ambientes de desarrollo y demostración](docs/AMBIENTES.md)
 
 ## Estado
@@ -147,3 +149,6 @@ Platform está desplegado en K3s utilizando su imagen oficial por digest.
 
 LAB-09 se encuentra validado localmente. La incorporación de Surface
 como segundo nodo físico continúa pendiente (LAB-10).
+DEV-01 valida la ejecución local de Platform mediante Docker Compose
+y su independencia respecto al clúster K3s. La reproducción en Surface
+y la incorporación de otros microservicios permanecen pendientes.
