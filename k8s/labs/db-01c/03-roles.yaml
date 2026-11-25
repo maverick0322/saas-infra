@@ -1,0 +1,37 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: identity-lab-owner
+  namespace: cnpg-lab
+spec:
+  cluster:
+    name: pg-lab-01
+  name: identity_lab_owner
+  ensure: present
+  databaseRoleReclaimPolicy: retain
+  # Activate only after database CONNECT privileges are restricted.
+  login: false
+  superuser: false
+  createdb: false
+  createrole: false
+  replication: false
+  bypassrls: false
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: clinical-lab-owner
+  namespace: cnpg-lab
+spec:
+  cluster:
+    name: pg-lab-01
+  name: clinical_lab_owner
+  ensure: present
+  databaseRoleReclaimPolicy: retain
+  # Activate only after database CONNECT privileges are restricted.
+  login: false
+  superuser: false
+  createdb: false
+  createrole: false
+  replication: false
+  bypassrls: false

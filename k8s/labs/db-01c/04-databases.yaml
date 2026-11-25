@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: identity-lab
+  namespace: cnpg-lab
+spec:
+  cluster:
+    name: pg-lab-01
+  name: identity_lab
+  owner: identity_lab_owner
+  ensure: present
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: clinical-lab
+  namespace: cnpg-lab
+spec:
+  cluster:
+    name: pg-lab-01
+  name: clinical_lab
+  owner: clinical_lab_owner
+  ensure: present
+  databaseReclaimPolicy: retain
