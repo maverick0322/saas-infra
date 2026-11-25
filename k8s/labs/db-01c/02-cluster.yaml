@@ -9,6 +9,9 @@ metadata:
 spec:
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:17.12-system-trixie
+  postgresql:
+    pg_hba:
+      - host app,postgres,template0,template1 identity_lab_owner,clinical_lab_owner all reject
   storage:
     storageClass: local-path
     size: 2Gi
