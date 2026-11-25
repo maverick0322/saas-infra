@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: plat05a-tenant-quota
+  namespace: saas-tenant-databases
+spec:
+  hard:
+    count/clusters.postgresql.cnpg.io: "1"
+    persistentvolumeclaims: "1"
+    requests.storage: 2Gi
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: plat05a-tenant-cluster-policy
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [postgresql.cnpg.io]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [clusters]
+        scope: Namespaced
+  matchConditions:
+    - name: tenant-lab-only
+      expression: "request.namespace == 'saas-tenant-databases'"
+  validations:
+    - expression: "request.userInfo.username == 'system:serviceaccount:saas-platform-lab:saas-platform-worker'"
+      message: "PLAT05A_CREATOR: only the lab Worker may create tenant Clusters"
+    - expression: >-
+        has(object.metadata.labels) &&
+        'app.kubernetes.io/managed-by' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/managed-by'] == 'saas-platform' &&
+        'app.kubernetes.io/component' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/component'] == 'tenant-postgres' &&
+        'vital.saas/tenant-id' in object.metadata.labels &&
+        'vital.saas/provisioning-operation-id' in object.metadata.labels &&
+        object.metadata.labels['vital.saas/tenant-id'].matches('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') &&
+        object.metadata.labels['vital.saas/provisioning-operation-id'].matches('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') &&
+        object.metadata.labels['vital.saas/tenant-id'] != '00000000-0000-0000-0000-000000000000' &&
+        object.metadata.labels['vital.saas/provisioning-operation-id'] != '00000000-0000-0000-0000-000000000000' &&
+        object.metadata.name == 'pg-' + object.metadata.labels['vital.saas/tenant-id'].replace('-', '')
+      message: "PLAT05A_IDENTITY: invalid ownership labels or deterministic name"
+    - expression: >-
+        has(object.spec.instances) && object.spec.instances == 1 &&
+        has(object.spec.imageName) && object.spec.imageName == 'ghcr.io/cloudnative-pg/postgresql:17.12-system-trixie@sha256:0f34d3fb12f415713ec94c3f2aa8295c7975f7114a0a8d360f26c958253bd032'
+      message: "PLAT05A_PROFILE: only the audited single-instance image is allowed"
+    - expression: >-
+        has(object.spec.storage) &&
+        object.spec.storage.storageClass == 'local-path' &&
+        string(object.spec.storage.size) == '2Gi'
+      message: "PLAT05A_STORAGE: only local-path 2Gi is allowed"
+    - expression: >-
+        has(object.spec.resources) &&
+        has(object.spec.resources.requests) &&
+        has(object.spec.resources.limits) &&
+        string(object.spec.resources.requests['cpu']) == '100m' &&
+        string(object.spec.resources.requests['memory']) == '256Mi' &&
+        string(object.spec.resources.limits['cpu']) == '750m' &&
+        string(object.spec.resources.limits['memory']) == '768Mi'
+      message: "PLAT05A_RESOURCES: resource profile does not match audited values"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: plat05a-tenant-cluster-binding
+spec:
+  policyName: plat05a-tenant-cluster-policy
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: saas-tenant-databases
