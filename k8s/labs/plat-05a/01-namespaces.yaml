@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saas-platform-lab
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saas-tenant-databases

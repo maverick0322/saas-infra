@@ -1,0 +1,22 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-platform-05a
+  namespace: saas-platform-lab
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.12-system-trixie@sha256:0f34d3fb12f415713ec94c3f2aa8295c7975f7114a0a8d360f26c958253bd032
+  bootstrap:
+    initdb:
+      database: platform_lab
+      owner: platform_lab_owner
+  storage:
+    storageClass: local-path
+    size: 2Gi
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "750m"
+      memory: "768Mi"

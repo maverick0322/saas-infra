@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas-platform-worker
+  namespace: saas-platform-lab
+spec:
+  # Activate explicitly only after guardrails, migrations and one synthetic operation.
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: saas-platform-worker
+  template:
+    metadata:
+      labels:
+        app: saas-platform-worker
+    spec:
+      serviceAccountName: saas-platform-worker
+      automountServiceAccountToken: true
+      nodeSelector:
+        kubernetes.io/hostname: saas-k3s-server
+      containers:
+        - name: worker
+          image: saas-platform-lab:d96848230eb42e00f3834f973705b3ac720f2e74
+          imagePullPolicy: Never
+          env:
+            - name: Platform__RuntimeMode
+              value: Worker
+            - name: ProvisioningWorker__Enabled
+              value: "true"
+            - name: ProvisioningWorker__Mode
+              value: CloudNativePg
+            - name: CloudNativePg__Namespace
+              value: saas-tenant-databases
+            - name: AdminApi__Enabled
+              value: "false"
+            - name: InternalGrpc__Enabled
+              value: "false"
+            - name: ConnectionStrings__PlatformDatabase
+              valueFrom:
+                secretKeyRef:
+                  name: platform-lab-connection
+                  key: connection-string
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
