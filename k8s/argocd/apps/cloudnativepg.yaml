@@ -3,10 +3,8 @@ kind: Application
 metadata:
   name: cloudnativepg
   namespace: argocd
-
 spec:
   project: default
-
   source:
     repoURL: https://cloudnative-pg.github.io/charts
     chart: cloudnative-pg
@@ -19,8 +17,6 @@ spec:
           create: true
         config:
           clusterWide: true
-        monitoring:
-          podMonitorEnabled: false
         resources:
           requests:
             cpu: "50m"
@@ -28,11 +24,11 @@ spec:
           limits:
             cpu: "500m"
             memory: "512Mi"
-
+        monitoring:
+          podMonitorEnabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: cnpg-system
-
   syncPolicy:
     automated:
       enabled: true
