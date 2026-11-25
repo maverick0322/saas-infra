@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudnativepg
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://cloudnative-pg.github.io/charts
+    chart: cloudnative-pg
+    targetRevision: 0.29.2
+    helm:
+      releaseName: cloudnativepg
+      valuesObject:
+        replicaCount: 1
+        crds:
+          create: true
+        config:
+          clusterWide: true
+        monitoring:
+          podMonitorEnabled: false
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cnpg-system
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: false
+      selfHeal: false
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
