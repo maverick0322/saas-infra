@@ -1,6 +1,6 @@
 # DB-01B — CloudNativePG por Argo CD (candidato)
 
-**Estado:** pendiente de revisión, instalación y pruebas; no instalado.
+**Estado:** DB-01B INSTALLATION_PASS (25 de noviembre de 2026). Operador instalado, sin clústeres PostgreSQL; compatibilidad funcional pendiente de DB-01C.
 **Base:** DB-01A y ADR-0002 / ADR-0003 en saas-platform/develop.
 
 ## Alcance
@@ -47,6 +47,24 @@ sudo k3s kubectl get crd | grep postgresql.cnpg.io
 sudo k3s kubectl -n saas-vital get deployments,pods
 sudo k3s kubectl top nodes
 ```
+
+## Evidencia de instalación — 25 de noviembre de 2026
+
+- PR #10 integrado en main, commit 38b4801.
+- Chart Helm 0.29.2 (CloudNativePG 1.30.2), previamente renderizado para Kubernetes 1.37.2: 11 CRD, 3 ClusterRole, 1 ClusterRoleBinding, 1 ServiceAccount, 1 Deployment, 1 Service, 2 ConfigMap y 2 configuraciones de webhook.
+- Archivo k8s/argocd/apps/cloudnativepg.yaml aplicado manualmente; Argo CD crea y sincroniza el operador.
+- Application cloudnativepg: Synced/Healthy.
+- Deployment cloudnativepg-cloudnative-pg: 1/1; rollout exitoso.
+- Pod del operador: Running, 0 reinicios al momento de la medición.
+- 11 CRD registrados; clusters.postgresql.cnpg.io: Established=True.
+- Servicio cnpg-webhook-service presente; endpoint 10.42.0.52:9443 observado; cinco validadores y cuatro mutadores registrados.
+- Registros consultados del operador muestran arranque de controladores y no incluyen errores en el tramo mostrado. **Todavía no se probó una admisión de Cluster ni una reconciliación real de PostgreSQL**.
+- Uso del operador al momento de la prueba: 4m CPU y 23 MiB RAM. No se infiere capacidad para cinco tenants.
+- Application saas-platform conservó Synced/Healthy y su Deployment seguía disponible; sin cambios en el despliegue Platform.
+- Incidencia transitoria previa: Metrics API no disponible durante el arranque; posteriormente se recuperó y kubectl top nodes/pods respondió.
+- No se creó ninguna instancia PostgreSQL, PVC, base de datos ni Secrets de tenant.
+
+**Dictamen:** DB-01B INSTALLATION_PASS. La combinación de CNPG 1.30.2 con nuestro K3s 1.37.2 supera instalación y disponibilidad del controlador, no constituye soporte oficial ni certificación de compatibilidad funcional de PostgreSQL.
 
 ## Recuperación y DB-01C
 
