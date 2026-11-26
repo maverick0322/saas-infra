@@ -1,0 +1,79 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: plat05b-service-database-provisioner
+  namespace: saas-tenant-databases
+rules:
+  - apiGroups: [postgresql.cnpg.io]
+    resources: [databaseroles]
+    resourceNames:
+      - role-01a214affddc713ea908c1f690486d90-identity
+      - role-01a214affddc713ea908c1f690486d90-clinical
+    verbs: [get, update]
+
+  - apiGroups: [postgresql.cnpg.io]
+    resources: [databaseroles]
+    verbs: [create]
+
+  - apiGroups: [postgresql.cnpg.io]
+    resources: [databases]
+    resourceNames:
+      - db-01a214affddc713ea908c1f690486d90-identity
+      - db-01a214affddc713ea908c1f690486d90-clinical
+    verbs: [get]
+
+  - apiGroups: [postgresql.cnpg.io]
+    resources: [databases]
+    verbs: [create]
+
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames:
+      - pg-auth-01a214affddc713ea908c1f690486d90-identity
+      - pg-auth-01a214affddc713ea908c1f690486d90-clinical
+    verbs: [get]
+
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: plat05b-service-database-provisioner
+  namespace: saas-tenant-databases
+subjects:
+  - kind: ServiceAccount
+    name: saas-platform-worker
+    namespace: saas-platform-lab
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: plat05b-service-database-provisioner
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: plat05b-distribution-writer
+  namespace: saas-platform-lab
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames:
+      - identity-tenant-connections-lab
+      - clinical-tenant-connections-lab
+    verbs: [get, update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: plat05b-distribution-writer
+  namespace: saas-platform-lab
+subjects:
+  - kind: ServiceAccount
+    name: saas-platform-worker
+    namespace: saas-platform-lab
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: plat05b-distribution-writer

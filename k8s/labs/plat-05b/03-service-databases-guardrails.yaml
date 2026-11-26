@@ -1,0 +1,330 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: plat05b-database-role-policy
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [postgresql.cnpg.io]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [databaseroles]
+        scope: Namespaced
+
+  matchConditions:
+    - name: lab-worker-only
+      expression: >-
+        request.userInfo.username ==
+        'system:serviceaccount:saas-platform-lab:saas-platform-worker'
+    - name: tenant-namespace-only
+      expression: "request.namespace == 'saas-tenant-databases'"
+
+  variables:
+    - name: service
+      expression: "object.metadata.labels['vital.saas/service']"
+
+  validations:
+    - expression: >-
+        has(object.metadata.labels) &&
+        'vital.saas/service' in object.metadata.labels &&
+        variables.service in ['identity', 'clinical'] &&
+        'app.kubernetes.io/managed-by' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/managed-by'] == 'saas-platform' &&
+        'app.kubernetes.io/component' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/component'] == 'tenant-postgres' &&
+        'vital.saas/tenant-id' in object.metadata.labels &&
+        object.metadata.labels['vital.saas/tenant-id'] == '01a214af-fddc-713e-a908-c1f690486d90' &&
+        'vital.saas/provisioning-operation-id' in object.metadata.labels &&
+        object.metadata.labels['vital.saas/provisioning-operation-id'] == '01a214af-fddc-75c8-9c5e-7f2317a4e6c2'
+      message: "PLAT05B_ROLE_IDENTITY: invalid tenant ownership labels"
+
+    - expression: >-
+        object.metadata.name ==
+        'role-01a214affddc713ea908c1f690486d90-' + variables.service &&
+        object.spec.cluster.name == 'pg-01a214affddc713ea908c1f690486d90' &&
+        object.spec.name == variables.service + '_owner'
+      message: "PLAT05B_ROLE_TARGET: unauthorized role or Cluster"
+
+    - expression: >-
+        object.spec.ensure == 'present' &&
+        object.spec.databaseRoleReclaimPolicy == 'retain'
+      message: "PLAT05B_ROLE_LIFECYCLE: present and retain required"
+
+    - expression: >-
+        object.spec.superuser == false &&
+        object.spec.createdb == false &&
+        object.spec.createrole == false &&
+        object.spec.replication == false &&
+        object.spec.bypassrls == false
+      message: "PLAT05B_ROLE_PRIVILEGES: privileged roles are forbidden"
+
+    - expression: >-
+        (!has(object.spec.inRoles) || size(object.spec.inRoles) == 0) &&
+        !has(object.spec.clientCertificate) &&
+        (!has(object.spec.disablePassword) || object.spec.disablePassword == false)
+      message: "PLAT05B_ROLE_CAPABILITIES: additional role capabilities are forbidden"
+
+    - expression: >-
+        request.operation != 'CREATE' ||
+        (object.spec.login == false && !has(object.spec.passwordSecret))
+      message: "PLAT05B_ROLE_INITIAL_STATE: initial role must use NOLOGIN"
+
+    - expression: >-
+        (object.spec.login == false && !has(object.spec.passwordSecret)) ||
+        (object.spec.login == true &&
+         has(object.spec.passwordSecret) &&
+         object.spec.passwordSecret.name ==
+         'pg-auth-01a214affddc713ea908c1f690486d90-' + variables.service)
+      message: "PLAT05B_ROLE_AUTH: invalid login or authentication Secret"
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: plat05b-database-role-binding
+spec:
+  policyName: plat05b-database-role-policy
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: saas-tenant-databases
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: plat05b-database-policy
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [postgresql.cnpg.io]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [databases]
+        scope: Namespaced
+
+  matchConditions:
+    - name: lab-worker-only
+      expression: >-
+        request.userInfo.username ==
+        'system:serviceaccount:saas-platform-lab:saas-platform-worker'
+    - name: tenant-namespace-only
+      expression: "request.namespace == 'saas-tenant-databases'"
+
+  variables:
+    - name: service
+      expression: "object.metadata.labels['vital.saas/service']"
+
+  validations:
+    - expression: >-
+        has(object.metadata.labels) &&
+        'vital.saas/service' in object.metadata.labels &&
+        variables.service in ['identity', 'clinical'] &&
+        'app.kubernetes.io/managed-by' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/managed-by'] == 'saas-platform' &&
+        'app.kubernetes.io/component' in object.metadata.labels &&
+        object.metadata.labels['app.kubernetes.io/component'] == 'tenant-postgres' &&
+        'vital.saas/tenant-id' in object.metadata.labels &&
+        object.metadata.labels['vital.saas/tenant-id'] == '01a214af-fddc-713e-a908-c1f690486d90' &&
+        'vital.saas/provisioning-operation-id' in object.metadata.labels &&
+        object.metadata.labels['vital.saas/provisioning-operation-id'] == '01a214af-fddc-75c8-9c5e-7f2317a4e6c2'
+      message: "PLAT05B_DATABASE_IDENTITY: invalid tenant ownership labels"
+
+    - expression: >-
+        object.metadata.name ==
+        'db-01a214affddc713ea908c1f690486d90-' + variables.service &&
+        object.spec.cluster.name == 'pg-01a214affddc713ea908c1f690486d90' &&
+        object.spec.name == variables.service &&
+        object.spec.owner == variables.service + '_owner'
+      message: "PLAT05B_DATABASE_TARGET: unauthorized database, owner or Cluster"
+
+    - expression: >-
+        object.spec.ensure == 'present' &&
+        object.spec.databaseReclaimPolicy == 'retain'
+      message: "PLAT05B_DATABASE_LIFECYCLE: present and retain required"
+
+    - expression: >-
+        (!has(object.spec.schemas) || size(object.spec.schemas) == 0) &&
+        (!has(object.spec.extensions) || size(object.spec.extensions) == 0) &&
+        (!has(object.spec.fdws) || size(object.spec.fdws) == 0) &&
+        (!has(object.spec.servers) || size(object.spec.servers) == 0)
+      message: "PLAT05B_DATABASE_CAPABILITIES: additional database objects are forbidden"
+
+    - expression: >-
+        (!has(object.spec.template) || object.spec.template == '') &&
+        (!has(object.spec.isTemplate) || object.spec.isTemplate == false) &&
+        (!has(object.spec.allowConnections) || object.spec.allowConnections == true)
+      message: "PLAT05B_DATABASE_PROFILE: invalid database creation profile"
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: plat05b-database-binding
+spec:
+  policyName: plat05b-database-policy
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: saas-tenant-databases
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: plat05b-auth-secret-policy
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [secrets]
+        scope: Namespaced
+
+  matchConditions:
+    - name: lab-worker-only
+      expression: >-
+        request.userInfo.username ==
+        'system:serviceaccount:saas-platform-lab:saas-platform-worker'
+    - name: tenant-namespace-only
+      expression: "request.namespace == 'saas-tenant-databases'"
+
+  variables:
+    - name: service
+      expression: "object.metadata.labels['vital.saas/service']"
+
+  validations:
+    - expression: >-
+        has(object.metadata.labels) &&
+        'vital.saas/service' in object.metadata.labels &&
+        variables.service in ['identity', 'clinical'] &&
+        object.metadata.name ==
+        'pg-auth-01a214affddc713ea908c1f690486d90-' + variables.service
+      message: "PLAT05B_AUTH_NAME: unauthorized authentication Secret"
+
+    - expression: >-
+        object.type == 'kubernetes.io/basic-auth' &&
+        object.metadata.labels['app.kubernetes.io/managed-by'] == 'saas-platform' &&
+        object.metadata.labels['app.kubernetes.io/component'] == 'tenant-postgres' &&
+        object.metadata.labels['vital.saas/tenant-id'] == '01a214af-fddc-713e-a908-c1f690486d90' &&
+        object.metadata.labels['vital.saas/provisioning-operation-id'] == '01a214af-fddc-75c8-9c5e-7f2317a4e6c2' &&
+        object.metadata.labels['cnpg.io/reload'] == 'true' &&
+        size(object.metadata.labels) == 6
+      message: "PLAT05B_AUTH_PROFILE: invalid authentication Secret profile"
+
+    - expression: >-
+        has(object.data) &&
+        size(object.data) == 2 &&
+        'username' in object.data &&
+        'password' in object.data &&
+        size(object.data['password']) > 0
+      message: "PLAT05B_AUTH_DATA: invalid authentication Secret keys"
+
+    - expression: >-
+        (variables.service == 'identity' &&
+         (type(object.data['username']) == bytes ? string(object.data['username']) == 'identity_owner' : string(object.data['username']) == 'aWRlbnRpdHlfb3duZXI=')) ||
+        (variables.service == 'clinical' &&
+         (type(object.data['username']) == bytes ? string(object.data['username']) == 'clinical_owner' : string(object.data['username']) == 'Y2xpbmljYWxfb3duZXI='))
+      message: "PLAT05B_AUTH_OWNER: unexpected database username"
+
+    - expression: >-
+        (!has(object.metadata.annotations) || size(object.metadata.annotations) == 0) &&
+        (!has(object.metadata.ownerReferences) || size(object.metadata.ownerReferences) == 0) &&
+        (!has(object.metadata.finalizers) || size(object.metadata.finalizers) == 0)
+      message: "PLAT05B_AUTH_METADATA: unexpected metadata"
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: plat05b-auth-secret-binding
+spec:
+  policyName: plat05b-auth-secret-policy
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: saas-tenant-databases
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: plat05b-distribution-secret-policy
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [UPDATE]
+        resources: [secrets]
+        scope: Namespaced
+
+  matchConditions:
+    - name: lab-worker-only
+      expression: >-
+        request.userInfo.username ==
+        'system:serviceaccount:saas-platform-lab:saas-platform-worker'
+    - name: platform-namespace-only
+      expression: "request.namespace == 'saas-platform-lab'"
+
+  validations:
+    - expression: >-
+        object.metadata.name in [
+          'identity-tenant-connections-lab',
+          'clinical-tenant-connections-lab'
+        ] &&
+        object.type == 'Opaque' &&
+        oldObject.type == 'Opaque'
+      message: "PLAT05B_DISTRIBUTION_TARGET: unauthorized distribution Secret"
+
+    - expression: >-
+        has(object.metadata.labels) &&
+        has(oldObject.metadata.labels) &&
+        object.metadata.labels == oldObject.metadata.labels &&
+        size(object.metadata.labels) == 3 &&
+        object.metadata.labels['app.kubernetes.io/managed-by'] == 'saas-platform' &&
+        object.metadata.labels['vital.saas/purpose'] == 'tenant-db-connections' &&
+        object.metadata.name ==
+        object.metadata.labels['vital.saas/service'] + '-tenant-connections-lab'
+      message: "PLAT05B_DISTRIBUTION_LABELS: immutable distribution identity required"
+
+    - expression: >-
+        (!has(object.metadata.annotations) && !has(oldObject.metadata.annotations)) ||
+        (has(object.metadata.annotations) &&
+         has(oldObject.metadata.annotations) &&
+         object.metadata.annotations == oldObject.metadata.annotations)
+      message: "PLAT05B_DISTRIBUTION_ANNOTATIONS: annotations must not change"
+
+    - expression: >-
+        (!has(object.metadata.ownerReferences) || size(object.metadata.ownerReferences) == 0) &&
+        (!has(object.metadata.finalizers) || size(object.metadata.finalizers) == 0) &&
+        (!has(object.immutable) || object.immutable == false)
+      message: "PLAT05B_DISTRIBUTION_METADATA: unexpected metadata"
+
+    - expression: >-
+        has(object.data) &&
+        size(object.data) == 1 &&
+        '01a214af-fddc-713e-a908-c1f690486d90.connection' in object.data &&
+        size(object.data['01a214af-fddc-713e-a908-c1f690486d90.connection']) > 0
+      message: "PLAT05B_DISTRIBUTION_DATA: only the conserved tenant entry is authorized"
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: plat05b-distribution-secret-binding
+spec:
+  policyName: plat05b-distribution-secret-policy
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: saas-platform-lab
