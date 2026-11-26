@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas-platform-worker
+  namespace: saas-platform-lab
+spec:
+  # Activate explicitly only after guardrails, migrations and one synthetic operation.
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: saas-platform-worker
+  template:
+    metadata:
+      labels:
+        app: saas-platform-worker
+    spec:
+      serviceAccountName: saas-platform-worker
+      automountServiceAccountToken: true
+      nodeSelector:
+        kubernetes.io/hostname: saas-k3s-server
+      containers:
+        - name: worker
+          image: saas-platform-lab:3de5c3a5cd53dd42dfbf37298e23dbf5049aef00
+          imagePullPolicy: Never
+          env:
+            - name: Platform__RuntimeMode
+              value: Worker
+            - name: ProvisioningWorker__Enabled
+              value: "true"
+            - name: ProvisioningWorker__Mode
+              value: CloudNativePg
+            - name: CloudNativePg__Namespace
+              value: saas-tenant-databases
+            - name: CloudNativePg__ServiceDatabases__Enabled
+              value: "true"
+            - name: CloudNativePg__ServiceDatabases__IdentityDistributionSecret__Namespace
+              value: saas-platform-lab
+            - name: CloudNativePg__ServiceDatabases__IdentityDistributionSecret__Name
+              value: identity-tenant-connections-lab
+            - name: CloudNativePg__ServiceDatabases__ClinicalDistributionSecret__Namespace
+              value: saas-platform-lab
+            - name: CloudNativePg__ServiceDatabases__ClinicalDistributionSecret__Name
+              value: clinical-tenant-connections-lab
+            - name: AdminApi__Enabled
+              value: "false"
+            - name: InternalGrpc__Enabled
+              value: "false"
+            - name: ConnectionStrings__PlatformDatabase
+              valueFrom:
+                secretKeyRef:
+                  name: platform-lab-connection
+                  key: connection-string
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]

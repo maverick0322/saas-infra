@@ -1,0 +1,10 @@
+# Merge patch for the existing tenant Cluster.
+# Do not apply as a standalone Kubernetes resource.
+metadata:
+  uid: 84fb9b6c-b40a-4c85-b822-810907498f73
+spec:
+  postgresql:
+    pg_hba:
+      - hostssl identity identity_owner all scram-sha-256
+      - hostssl clinical clinical_owner all scram-sha-256
+      - host all identity_owner,clinical_owner all reject
