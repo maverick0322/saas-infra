@@ -22,7 +22,7 @@ spec:
         kubernetes.io/hostname: saas-k3s-server
       containers:
         - name: worker
-          image: saas-platform-lab:3de5c3a5cd53dd42dfbf37298e23dbf5049aef00
+          image: saas-platform-lab:c8041c145e2292665cef67e5c848239bd95ad3aa
           imagePullPolicy: Never
           env:
             - name: Platform__RuntimeMode
